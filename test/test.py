@@ -3,7 +3,7 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from cocotb.triggers import ClockCycles, RisingEdge
 
 # The secret 40-bit key — must match the localparam SECRET_KEY in project.v
 SECRET_KEY = 0xA5_3C_96_6F_B2
@@ -25,11 +25,17 @@ async def shift_in_value(dut, value, nbits=KEY_BITS):
     """
     Shift 'nbits' bits of 'value' MSB-first into the DUT.
     ui_in[1] = shift_en = 1, ui_in[0] = serial data bit.
+    After the last bit, we wait one more rising edge with shift_en=0
+    so the output is stable before we read it.
     """
     for i in range(nbits - 1, -1, -1):
         bit = (value >> i) & 1
         dut.ui_in.value = (1 << 1) | bit   # shift_en=1, serial_in=bit
-        await ClockCycles(dut.clk, 1)
+        await RisingEdge(dut.clk)
+
+    # Deassert shift_en and let output settle for one cycle
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 1)
 
 
 def output_bit(dut):
@@ -113,8 +119,10 @@ async def test_extra_bit_clears_output(dut):
     await shift_in_value(dut, SECRET_KEY)
     assert output_bit(dut) == 1, "Precondition: output should be 1 after correct key"
 
-    # Shift in one more 0 bit
+    # Shift in one more 0 bit with shift_en=1, then settle
     dut.ui_in.value = (1 << 1) | 0   # shift_en=1, serial_in=0
+    await RisingEdge(dut.clk)
+    dut.ui_in.value = 0
     await ClockCycles(dut.clk, 1)
     assert output_bit(dut) == 0, "uo_out[0] must go back to 0 after one extra shift"
 
@@ -135,7 +143,10 @@ async def test_shift_enable_gating(dut):
     for i in range(KEY_BITS - 1, -1, -1):
         bit = (SECRET_KEY >> i) & 1
         dut.ui_in.value = (0 << 1) | bit   # shift_en=0
-        await ClockCycles(dut.clk, 1)
+        await RisingEdge(dut.clk)
+
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 1)
 
     assert output_bit(dut) == 0, (
         "uo_out[0] must remain 0 when shift_en=0 — register must not have changed"
@@ -149,8 +160,8 @@ async def test_shift_enable_gating(dut):
 async def test_sliding_window(dut):
     """
     Stream 80 bits: 40 zeros followed by the secret key.
-    Output must be LOW during the 40 zeros, HIGH on the 80th bit,
-    then LOW again when one more bit is clocked in.
+    Output must be LOW during the 40 zeros, HIGH after the key is loaded,
+    then LOW again after one more bit is clocked in.
     """
     dut._log.info("Test 7: sliding window — output pulses exactly once")
     clock = Clock(dut.clk, 10, unit="us")
@@ -162,12 +173,14 @@ async def test_sliding_window(dut):
     await shift_in_value(dut, 0x00_00_00_00_00, nbits=40)
     assert output_bit(dut) == 0, "Output must be LOW after 40 zeros"
 
-    # Phase 2: shift the secret key MSB-first — output goes HIGH on the last bit
+    # Phase 2: shift the secret key MSB-first — output goes HIGH
     await shift_in_value(dut, SECRET_KEY, nbits=40)
     assert output_bit(dut) == 1, "Output must be HIGH after correct key is fully loaded"
 
-    # Phase 3: one more bit — register slides past the key
+    # Phase 3: one more bit with shift_en=1 — register slides past the key
     dut.ui_in.value = (1 << 1) | 0
+    await RisingEdge(dut.clk)
+    dut.ui_in.value = 0
     await ClockCycles(dut.clk, 1)
     assert output_bit(dut) == 0, "Output must drop back to LOW after sliding past the key"
 
