@@ -17,18 +17,14 @@ else
 
 # Gate-level simulation
 COMPILE_ARGS    += -DGL_TEST
-COMPILE_ARGS    += -f $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
-COMPILE_ARGS    += -f $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
+COMPILE_ARGS    += $(PDK_ROOT)/$(PDK)/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
+COMPILE_ARGS    += $(PDK_ROOT)/$(PDK)/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 VERILOG_SOURCES += $(PWD)/tb.v
 
 endif
 
-# Waveform format: FST by default, override with FST= to get VCD
-PLUSARGS ?= +fst
-
 TOPLEVEL = tb
 MODULE   = test
 
-# Use cocotb's Makefiles
 include $(shell cocotb-config --makefiles)/Makefile.sim
