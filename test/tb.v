@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-/* This testbench instantiates tt_um_thorsten_shiftregister and makes
+/* This testbench instantiates tt_um_thirugnanam_shiftregister and makes
    convenient wires that can be driven / tested by the cocotb test.py. */
 module tb ();
 
