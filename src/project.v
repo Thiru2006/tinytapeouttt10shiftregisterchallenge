@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Thorsten Knoll
+ * Copyright (c) 2024 Thirugnanam V S
  * SPDX-License-Identifier: Apache-2.0
  *
  * 40-Bit Shift Register Challenge
@@ -20,7 +20,7 @@
 
 `default_nettype none
 
-module tt_um_thorsten_shiftregister (
+module tt_um_thirugnanam_shiftregister (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
