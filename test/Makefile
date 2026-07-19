@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2024 Thorsten Knoll
+# SPDX-FileCopyrightText: © 2024 Thirugnanam V S
 # SPDX-License-Identifier: Apache-2.0
 
 SIM ?= icarus
