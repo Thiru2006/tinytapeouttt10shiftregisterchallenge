@@ -27,7 +27,7 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-  tt_um_thorsten_shiftregister user_project (
+  tt_um_thirugnanam_shiftregister user_project (
 `ifdef GL_TEST
       .VPWR  (VPWR),
       .VGND  (VGND),
