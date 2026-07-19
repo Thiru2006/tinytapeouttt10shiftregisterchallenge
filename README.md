@@ -2,7 +2,7 @@
 
 # Shiftregister Challenge 40 Bit
 
-**Author:** Thorsten Knoll
+**Author:** Thirugnanam V S
 
 A 40-bit shift register challenge implemented for [Tiny Tapeout](https://tinytapeout.com).
 
